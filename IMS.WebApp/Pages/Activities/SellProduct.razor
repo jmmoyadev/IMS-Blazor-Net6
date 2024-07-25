@@ -1,0 +1,139 @@
+﻿@page "/sell"
+
+@inject IViewProductsByNameUseCase _viewProductsByNameUseCase
+@inject IViewProductByIdUseCase _viewProductByIdUseCase
+@inject ISellProductUseCase _sellProductUseCase
+@inject IJSRuntime _jsRuntime
+
+@attribute [Authorize(Policy = "Sales") ]
+
+<h3>SellProduct</h3>
+<br />
+
+<EditForm id="sellForm" Model="_sellViewModel" OnValidSubmit="Sell">
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    <ValidationSummary></ValidationSummary>
+
+    <div class="form-group">
+        <label for="po">Sales Order #</label>
+        <InputText id="po" @bind-Value="_sellViewModel.SalesOrderNumber" class="form-control"></InputText>
+    </div>
+    <br />
+    <div class="card">
+        <div class="card-body">
+
+            <div class="form-group">
+                <AutoCompleteComponent Label="Product to sell"
+                                       SearchFunction="SearchProduct"
+                                       OnItemSelected="OnItemSelected">
+                </AutoCompleteComponent>
+                <input type="hidden" value="@_sellViewModel.ProductId" />
+                @if (_sellViewModel.ProductId > 0 && _sellViewModel.UnitPrice >= 0)
+                {
+                    <text>Price:</text>
+                    @_sellViewModel.UnitPrice.ToString("c")
+                }
+            </div>
+
+        </div>
+
+    </div>
+    <br />
+    <div class="form-group">
+        <label for="quantity">Quantity</label>
+        <InputNumber id="quantity" @bind-Value="_sellViewModel.QuantityToSell" class="form-control"></InputNumber>
+    </div>
+    <div class="form-group">
+        <label for="price">Price</label>
+        <InputNumber id="price" @bind-Value="_sellViewModel.UnitPrice" class="form-control"></InputNumber>
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary">Purchase</button>
+
+</EditForm>
+
+
+@code {
+
+    private AuthenticationState? _authenticationState;
+
+    [CascadingParameter]
+    public Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private SellViewModel _sellViewModel = new();
+
+    private Product? selectedProduct = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (this.AuthenticationStateTask != null)
+            _authenticationState = await this.AuthenticationStateTask;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+
+        if (firstRender)
+        {
+            _jsRuntime.InvokeVoidAsync("PreventFormSubmit", "sellForm");
+        }
+
+
+    }
+
+
+    private async Task<List<ItemViewModel>> SearchProduct(string name = "")
+    {
+        var list = await _viewProductsByNameUseCase.ExecuteAsync(name);
+        if (list != null && list.Count() > 0)
+        {
+            return list.Select(p => new ItemViewModel { Id = p.ProductId.ToString(), Name = p.ProductName }).ToList();
+        }
+        return new List<ItemViewModel>();
+
+    }
+
+    private async Task OnItemSelected(ItemViewModel item)
+    {
+        if (item != null)
+        {
+            int itemId = Convert.ToInt32(item.Id);
+            var product = await _viewProductByIdUseCase.ExecuteAsync(itemId);
+            this._sellViewModel.ProductId = itemId;
+            this.selectedProduct = product;
+            this._sellViewModel.UnitPrice = product.Price;
+
+        }
+        else
+        {
+
+            this.selectedProduct = null;
+            this._sellViewModel.ProductId = 0;
+            this._sellViewModel.UnitPrice = 0;
+        }
+    }
+
+
+    private async Task Sell()
+    {
+        if (this.selectedProduct == null) return;
+        if (_authenticationState != null
+           && _authenticationState.User?.Identity?.Name != null)
+        {
+            string userName = _authenticationState.User.Identity.Name;
+
+            await _sellProductUseCase.ExecuteAsync(
+                this._sellViewModel.SalesOrderNumber,
+                this.selectedProduct,
+                this._sellViewModel.QuantityToSell,
+                this._sellViewModel.UnitPrice,
+                userName
+            );
+        }
+
+        this._sellViewModel = new SellViewModel();
+        
+    }
+
+}

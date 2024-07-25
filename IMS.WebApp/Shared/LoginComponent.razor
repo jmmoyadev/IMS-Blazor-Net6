@@ -1,0 +1,23 @@
+﻿
+<ul class="navbar-nav mb-2 mb-lg-0 float-end">
+    <AuthorizeView>
+        <Authorized>
+            <li class="nav-item">
+                <a class="nav-link" href="/identity/account/logout">Sign Out</a>
+            </li>
+        </Authorized>
+        <NotAuthorized>
+            <li class="nav-item">
+                <a class="nav-link" href="/identity/account/login">Log In</a>
+            </li>
+        </NotAuthorized>
+    </AuthorizeView>
+    <li class="nav-item">
+        <a class="nav-link" href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+    </li>
+</ul>
+
+
+@code {
+
+}

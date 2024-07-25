@@ -1,0 +1,33 @@
+﻿@inject NavigationManager _navigationManager;
+
+
+@if (listProducts != null && listProducts.Count > 0)
+{
+    @foreach (var prod in listProducts)
+    {
+        <tr>
+            <td>@prod.ProductName</td>
+            <td>@prod.Quantity</td>
+            <td class="text-end">@prod.Price.ToString("c")</td>
+            <td class="text-end">
+                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="@(() => EditProduct(prod.ProductId))">Edit</button>
+            </td>
+        </tr>
+    }
+}
+else
+{
+    <tr>
+        <td colspan="4" class="text-center">No items found</td>
+    </tr>
+}
+@code {
+    [Parameter]
+    public List<Product> listProducts { get; set; } = new();
+
+    private void EditProduct(int inventoryId)
+    {
+        _navigationManager.NavigateTo($"/products/edit/{inventoryId}");
+    }
+
+}

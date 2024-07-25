@@ -1,0 +1,52 @@
+﻿@page "/inventories/add"
+@inject IAddInventoryUseCase _addInventoryUseCase;
+@inject NavigationManager _navigationManager;
+
+@attribute [Authorize(Policy = "Inventory")]
+
+<h3>Add Inventory</h3>
+
+<br />
+
+
+<EditForm Model="inventory" OnValidSubmit="SaveInventory">
+
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    <ValidationSummary></ValidationSummary>
+    <div class="form-group">
+        <label for="name">Inventory Name</label>
+        <InputText id="name" class="form-control" @bind-Value="inventory.InventoryName"></InputText>
+    </div>
+
+    <div class="form-group">
+        <label for="quantity">Quantity</label>
+        <InputNumber id="quantity" class="form-control" @bind-Value="inventory.Quantity"></InputNumber>
+    </div>
+
+    <div class="form-group">
+        <label for="price">Price</label>
+        <InputNumber id="price" class="form-control" @bind-Value="inventory.Price"></InputNumber>
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+
+</EditForm>
+
+
+@code {
+    private Inventory inventory = new Inventory();
+
+    private async Task SaveInventory()
+    {
+        await _addInventoryUseCase.ExecuteAsync(inventory);
+        _navigationManager.NavigateTo("/inventories");
+
+    }
+
+    private void Cancel()
+    {
+        _navigationManager.NavigateTo("/inventories");
+    }
+
+}

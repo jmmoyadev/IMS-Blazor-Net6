@@ -1,0 +1,26 @@
+﻿.search-result {
+    overflow-y: auto;
+    max-height: 300px;
+    border: 1px solid silver;
+    padding: 5px
+}
+
+div.search-result ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+    div.search-result ul li {
+        cursor: pointer;
+        padding: 3px;
+    }
+
+        div.search-result ul li:hover {
+            background-color: #1b6ec2;
+            color: white;
+        }
+
+.selected {
+    background-color: lightblue;
+}

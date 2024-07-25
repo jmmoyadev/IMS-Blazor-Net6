@@ -1,0 +1,123 @@
+﻿@page "/productreport"
+
+<h3>Product Transactions </h3>
+<br />
+
+@inject ISearchProductTransactionsUseCase _searchProductTransactionsUseCase
+@inject IJSRuntime _jsRuntime
+
+<div id="printarea">
+    <div class="row">
+        <div class="col">
+            <label for="prod">Product Name</label>
+            <input type="text" id="prod" class="form-control" @bind-value="prodName" />
+        </div>
+
+        <div class="col">
+            <label for="df">Date From</label>
+            <input type="date" id="df" class="form-control" @bind-value="dateFrom" />
+        </div>
+
+        <div class="col">
+            <label for="dt">Date To</label>
+            <input type="date" id="dt" class="form-control" @bind-value="dateTo" />
+        </div>
+
+        <div class="col">
+            <label for="at">Product Name</label>
+            <select id="at" class="form-select" @bind="activityTypeId">
+                <option value="0"></option>
+                <option value="1">Produce Product</option>
+                <option value="2">Sell Product</option>
+            </select>
+        </div>
+
+        <div class="col">
+            <label> &nbsp;</label>
+            <button type="button" class="btn btn-primary form-control" @onclick="SearchProducts">Search</button>
+        </div>
+
+        <div class="col">
+            <label> &nbsp;</label>
+            <button type="button" class="btn btn-primary form-control" @onclick="PrintReport">Print</button>
+        </div>
+    </div>
+
+    <br />
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <td>Date</td>
+                <td>Product</td>
+                <td>Activity</td>
+                <td>Qty Before</td>
+                <td>Qty After</td>
+                <td class="text-end">Unit Price</td>
+                <td>Production #</td>
+                <td>SO #</td>
+                <td>Done By</td>
+            </tr>
+        </thead>
+        <tbody>
+            @if (productTransactions != null && productTransactions.Count() > 0)
+            {
+                @foreach (var pt in productTransactions)
+                {
+                    <tr>
+                        <td>@pt.TransactionDate.ToString("dd/MM/yyyy")</td>
+                        <td>@pt.Product?.ProductName</td>
+                        <td>
+                            @if (pt.ActivityType == ProductTransactionType.ProduceProduct)
+                            {
+                                <text>Produce</text>
+                            }
+                            else if (pt.ActivityType == ProductTransactionType.SellProduct)
+                            {
+                                <text>Sell</text>
+                            }
+                        </td>
+                        <td>@pt.QuantityBefore</td>
+                        <td>@pt.QuantityAfter</td>
+                        <td class="text-end">@pt.UnitPrice?.ToString("c")</td>
+                        <td>@pt.ProductionNumber</td>
+                        <td>@pt.SalesOrderNumber</td>
+                        <td>@pt.DoneBy</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+
+
+    private string prodName = string.Empty;
+    private DateTime? dateFrom;
+    private DateTime? dateTo;
+    private int activityTypeId = 0;
+    private IEnumerable<ProductTransaction>? productTransactions;
+
+
+    private async Task SearchProducts()
+    {
+
+        ProductTransactionType? prodTransactionType = null;
+        if (activityTypeId != 0) prodTransactionType = (ProductTransactionType)activityTypeId;
+
+
+        productTransactions = await _searchProductTransactionsUseCase.ExecuteAsync(
+            prodName,
+            dateFrom,
+            dateTo,
+            prodTransactionType
+        );
+    }
+
+    private async Task PrintReport()
+    {
+        await _jsRuntime.InvokeVoidAsync("print");
+    }
+
+
+}

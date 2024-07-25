@@ -1,0 +1,27 @@
+﻿@page "/"
+
+@inject IViewInventoriesByNameUseCase _viewInventoriesByNameUseCase
+@inject IEditInventoryUseCase _editInventoryUseCase;
+
+<PageTitle>Home</PageTitle>
+
+<h3>Inventory Management System</h3>
+
+<br />
+<ul>
+    @foreach(var inv in _inventories)
+    {
+        <li>@inv.InventoryName</li>
+    }
+</ul>
+
+
+@code {
+    private List<Inventory> _inventories = new List<Inventory>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _inventories = (await _viewInventoriesByNameUseCase.ExecuteAsync()).ToList();
+    }
+
+}
